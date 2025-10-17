@@ -213,43 +213,49 @@ struct LanguageSelectionPage: View {
     ]
     
     var body: some View {
-        VStack(spacing: 30) {
-            VStack(spacing: 16) {
-                Text("Choose Your Languages")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(primaryColor)
-                
-                Text("Select the languages you want to learn. You can always add more later.")
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 40)
-            }
+        ScrollView(.vertical, showsIndicators: false) {
             
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
-                ForEach(availableLanguages, id: \.0) { language, flag in
-                    LanguageCard(
-                        language: language,
-                        flag: flag,
-                        isSelected: selectedLanguages.contains(language)
-                    ) {
-                        if selectedLanguages.contains(language) {
-                            selectedLanguages.remove(language)
-                        } else {
-                            selectedLanguages.insert(language)
+            VStack {
+                
+                VStack(spacing: 30) {
+                    VStack(spacing: 16) {
+                        Text("Choose Your Languages")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(primaryColor)
+                        
+                        Text("Select the languages you want to learn. You can always add more later.")
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 40)
+                    }
+                    
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 16) {
+                        ForEach(availableLanguages, id: \.0) { language, flag in
+                            LanguageCard(
+                                language: language,
+                                flag: flag,
+                                isSelected: selectedLanguages.contains(language)
+                            ) {
+                                if selectedLanguages.contains(language) {
+                                    selectedLanguages.remove(language)
+                                } else {
+                                    selectedLanguages.insert(language)
+                                }
+                            }
                         }
                     }
+                    .padding(.horizontal, 30)
+                    
+                    Spacer()
                 }
+                .padding(.top, 40)
             }
-            .padding(.horizontal, 30)
-            
-            Spacer()
         }
-        .padding(.top, 40)
     }
 }
 
