@@ -298,66 +298,72 @@ struct GoalsSetupPage: View {
     private let primaryColor = Color(hex: "#C80F2E")
     
     var body: some View {
-        VStack(spacing: 30) {
-            VStack(spacing: 16) {
-                Text("Set Your Goals")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(primaryColor)
-                
-                Text("Tell us why you want to learn languages and set your weekly target.")
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal, 40)
-            }
+        ScrollView(.vertical, showsIndicators: false) {
             
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Why are you learning?")
-                    .font(.headline)
-                    .foregroundColor(.primary)
+            VStack {
                 
-                ForEach(LearningGoal.allCases, id: \.self) { goal in
-                    GoalCard(
-                        goal: goal,
-                        isSelected: selectedGoals.contains(goal)
-                    ) {
-                        if selectedGoals.contains(goal) {
-                            selectedGoals.remove(goal)
-                        } else {
-                            selectedGoals.insert(goal)
+                VStack(spacing: 30) {
+                    VStack(spacing: 16) {
+                        Text("Set Your Goals")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(primaryColor)
+                        
+                        Text("Tell us why you want to learn languages and set your weekly target.")
+                            .font(.body)
+                            .multilineTextAlignment(.center)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 40)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Why are you learning?")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        ForEach(LearningGoal.allCases, id: \.self) { goal in
+                            GoalCard(
+                                goal: goal,
+                                isSelected: selectedGoals.contains(goal)
+                            ) {
+                                if selectedGoals.contains(goal) {
+                                    selectedGoals.remove(goal)
+                                } else {
+                                    selectedGoals.insert(goal)
+                                }
+                            }
                         }
                     }
-                }
-            }
-            .padding(.horizontal, 30)
-            
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Weekly Goal")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                HStack {
-                    Text("I want to complete")
-                        .foregroundColor(.secondary)
+                    .padding(.horizontal, 30)
                     
-                    Picker("Weekly Goal", selection: $weeklyGoal) {
-                        ForEach(1...20, id: \.self) { number in
-                            Text("\(number)").tag(number)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Weekly Goal")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        HStack {
+                            Text("I want to complete")
+                                .foregroundColor(.secondary)
+                            
+                            Picker("Weekly Goal", selection: $weeklyGoal) {
+                                ForEach(1...20, id: \.self) { number in
+                                    Text("\(number)").tag(number)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            .accentColor(primaryColor)
+                            
+                            Text("lessons per week")
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
-                    .accentColor(primaryColor)
+                    .padding(.horizontal, 30)
                     
-                    Text("lessons per week")
-                        .foregroundColor(.secondary)
+                    Spacer()
                 }
+                .padding(.top, 40)
             }
-            .padding(.horizontal, 30)
-            
-            Spacer()
         }
-        .padding(.top, 40)
     }
 }
 
