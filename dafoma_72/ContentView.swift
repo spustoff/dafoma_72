@@ -57,21 +57,32 @@ struct ContentView: View {
             return
         }
         
-        print("Making request to: \(url.absoluteString)")
-        print("Host: \(url.host ?? "unknown")")
+        print("🚀 Making request to: \(url.absoluteString)")
+        print("🏠 Host: \(url.host ?? "unknown")")
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.timeoutInterval = 5.0
         
-        // Принудительно добавляем Host заголовок для правильного SNI
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        // Добавляем заголовки для имитации браузера
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1", forHTTPHeaderField: "User-Agent")
+        request.setValue("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        request.setValue("ru-RU,ru;q=0.9,en;q=0.8", forHTTPHeaderField: "Accept-Language")
+        request.setValue("gzip, deflate, br", forHTTPHeaderField: "Accept-Encoding")
+        
+        print("📤 Request Headers: \(request.allHTTPHeaderFields ?? [:])")
+        
+        // Создаем URLSession без автоматических редиректов
+        let config = URLSessionConfiguration.default
+        let session = URLSession(configuration: config, delegate: RedirectHandler(), delegateQueue: nil)
+        
+        session.dataTask(with: request) { data, response, error in
             
             DispatchQueue.main.async {
                 
                 // Если есть любая ошибка (включая SSL) - блокируем
                 if let error = error {
-                    print("Network error: \(error.localizedDescription)")
+                    print("❌ Network error: \(error.localizedDescription)")
                     print("Server unavailable, showing block")
                     self.isBlock = true
                     self.isFetched = true
@@ -81,15 +92,40 @@ struct ContentView: View {
                 // Если получили ответ от сервера
                 if let httpResponse = response as? HTTPURLResponse {
                     
-                    print("HTTP Status Code: \(httpResponse.statusCode)")
+                    print("📡 HTTP Status Code: \(httpResponse.statusCode)")
+                    print("📋 Response Headers: \(httpResponse.allHeaderFields)")
+                    
+                    // Логируем тело ответа для диагностики
+                    if let data = data, let responseBody = String(data: data, encoding: .utf8) {
+                        print("📄 Response Body: \(responseBody.prefix(500))") // Первые 500 символов
+                    }
                     
                     if httpResponse.statusCode == 200 {
-                        // Только 200 разблокирует (есть ссылка на оффер)
+                        // Проверяем, есть ли контент в ответе
+                        let contentLength = httpResponse.value(forHTTPHeaderField: "Content-Length") ?? "0"
+                        let hasContent = data?.count ?? 0 > 0
+                        
+                        if contentLength == "0" || !hasContent {
+                            // Пустой ответ = "do nothing" от Keitaro
+                            print("🚫 Empty response (do nothing): Showing block")
+                            self.isBlock = true
+                            self.isFetched = true
+                        } else {
+                            // Есть контент = успех
+                            print("✅ Success with content: Showing WebView")
+                            self.isBlock = false
+                            self.isFetched = true
+                        }
+                        
+                    } else if httpResponse.statusCode >= 300 && httpResponse.statusCode < 400 {
+                        // Редиректы = успех (есть оффер)
+                        print("✅ Redirect (code \(httpResponse.statusCode)): Showing WebView")
                         self.isBlock = false
                         self.isFetched = true
                         
                     } else {
-                        // Все остальные коды (404, 500, и т.д.) - блокируем
+                        // 404, 403, 500 и т.д. - блокируем
+                        print("🚫 Error code \(httpResponse.statusCode): Showing block")
                         self.isBlock = true
                         self.isFetched = true
                     }
@@ -97,6 +133,7 @@ struct ContentView: View {
                 } else {
                     
                     // Нет HTTP ответа - блокируем
+                    print("❌ No HTTP response: Showing block")
                     self.isBlock = true
                     self.isFetched = true
                 }
